@@ -31,6 +31,8 @@
 #include <map>
 #include <streambuf>
 #include <numeric>
+
+#include <fmt/ranges.h>
 #include <toml.hpp>
 
 #include "flow/ActorCollection.h"

@@ -31,6 +31,9 @@
 #include <sys/wait.h>
 #include <thread>
 #include <type_traits>
+
+#include <fmt/core.h>
+
 #include "flow/Arena.h"
 #include "flow/Error.h"
 #include "flow/MkCert.h"
@@ -131,8 +134,7 @@ template <>
 struct fmt::formatter<Result> {
 	constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
 
-	template <class FormatContext>
-	auto format(const Result& r, FormatContext& ctx) -> decltype(ctx.out()) {
+	auto format(const Result& r, fmt::format_context& ctx) const -> decltype(ctx.out()) {
 		if (r == Result::TRUSTED)
 			return fmt::format_to(ctx.out(), "TRUSTED");
 		else if (r == Result::UNTRUSTED)
@@ -148,8 +150,7 @@ template <>
 struct fmt::formatter<ChainLength> {
 	constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
 
-	template <class FormatContext>
-	auto format(ChainLength value, FormatContext& ctx) -> decltype(ctx.out()) {
+	auto format(ChainLength value, fmt::format_context& ctx) const -> decltype(ctx.out()) {
 		if (value == NO_TLS)
 			return fmt::format_to(ctx.out(), "NO_TLS");
 		else
@@ -161,8 +162,7 @@ template <>
 struct fmt::formatter<std::vector<std::pair<ChainLength, ChainLength>>> {
 	constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
 
-	template <class FormatContext>
-	auto format(const std::vector<std::pair<ChainLength, ChainLength>>& entries, FormatContext& ctx)
+	auto format(const std::vector<std::pair<ChainLength, ChainLength>>& entries, fmt::format_context& ctx) const
 	    -> decltype(ctx.out()) {
 		fmt::format_to(ctx.out(), "[");
 		bool first = true;
