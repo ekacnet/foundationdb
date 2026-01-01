@@ -1,10 +1,19 @@
-find_package(msgpack 3.3.0 EXACT QUIET CONFIG)
+find_package(msgpack 3.3.0 CONFIG QUIET)
+if(NOT msgpack_FOUND)
+    # Try Homebrew name
+    find_package(msgpack-c 6.1.0 CONFIG REQUIRED)
+    set(msgpack_FOUND TRUE)
+  else()
+    add_library(msgpack-c INTERFACE)
+    target_include_directories(msgpack-c INTERFACE "${msgpack_DIR}/include")
+    set(msgpack-c_FOUND TRUE)
+endif()
 
-add_library(msgpack INTERFACE)
-
-if(msgpack_FOUND)
-  target_link_libraries(msgpack INTERFACE msgpackc-cxx)
+if(msgpack-c_FOUND)
+  message(STATUS "Found msgpack:  ${MSGPACK_TARGET}")
 else()
+  add_library(msgpack-c INTERFACE)
+  message(FATAL_ERROR "do not use external downloaded msgpack")
   include(ExternalProject)
   ExternalProject_add(msgpackProject
     URL "https://github.com/msgpack/msgpack-c/releases/download/cpp-3.3.0/msgpack-3.3.0.tar.gz"
