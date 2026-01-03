@@ -115,6 +115,7 @@ set(FDB_FUTURE_VERSION "7.4.0")
 set(FDB_PREV_RELEASE_VERSION "7.1.33")
 set(FDB_PREV2_RELEASE_VERSION "7.0.0")
 set(FDB_PREV3_RELEASE_VERSION "6.3.25")
+option(USE_PYTHON_AC "Use python for actor compiler and vexillographer" 0)
 
 ################################################################################
 # Flow
@@ -122,8 +123,14 @@ set(FDB_PREV3_RELEASE_VERSION "6.3.25")
 
 include(utils)
 
-# Flow and other tools are written in C# - so we need that dependency
-include(EnableCsharp)
+if(USE_PYTHON_AC AND NOT WITH_PYTHON)
+  message(FATAL_ERROR "USE_PYTHON_AC requires the presence of python interperter")
+endif()
+
+if(USE_PYTHON_AC)
+  # Flow and other tools are written in C# - so we need that dependency
+  include(EnableCsharp)
+endif()
 
 # First thing we need is the actor compiler - and to compile and run the
 # actor compiler, we need mono
@@ -231,5 +238,5 @@ endif()
 ################################################################################
 
 print_components()
-
+message(STATUS "Use python for actor compiler and vexillographer: ${USE_PYTHON_AC}")
 message(STATUS "CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL}")
