@@ -116,7 +116,14 @@ bool destructed = false;
 // environment details
 class TestConfig : public BasicTestConfig {
 	class ConfigBuilder {
+		#if defined(TOML11_VERSION_MAJOR) && TOML11_VERSION_MAJOR >= 4
+		struct discard_comments_config : toml::type_config {
+				using comment_type = toml::discard_comments;
+		};
+		using value_type = toml::basic_value<discard_comments_config>;
+		#else
 		using value_type = toml::basic_value<toml::discard_comments>;
+		#endif
 		using base_variant = std::
 		    variant<int, float, double, bool, std::string, std::vector<int>, std::vector<std::string>, ConfigDBType>;
 		using types =
