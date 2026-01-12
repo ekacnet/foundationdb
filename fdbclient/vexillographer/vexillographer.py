@@ -243,7 +243,7 @@ class CppWriter(BindingWriter):
     def _info_line(option: Option, indent: str, struct_name: str) -> str:
         return (
             f"{indent}ADD_OPTION_INFO({struct_name}, {option.name.upper()}, "
-            f"\"{option.name.upper()}\", \"{option.comment}\", \"{option.parameter_comment}\", "
+            f'"{option.name.upper()}", "{option.comment}", "{option.parameter_comment}", '
             f"{str(option.param_desc is not None).lower()}, "
             f"{str(option.hidden).lower()}, "
             f"{str(option.persistent).lower()}, "
@@ -297,7 +297,8 @@ class JavaWriter(BindingWriter):
 
     scope_doc_options = {
         Scope.NetworkOption: ScopeOptions(
-            True, "A set of options that can be set globally for the {@link FDB FoundationDB API}."
+            True,
+            "A set of options that can be set globally for the {@link FDB FoundationDB API}.",
         ),
         Scope.DatabaseOption: ScopeOptions(
             True, "A set of options that can be set on a {@link Database}."
@@ -561,24 +562,31 @@ class JavaWriter(BindingWriter):
             )
         )
 
-    def write_files(self, output_directory: str, options: Sequence[Option]) -> None:
-        if not os.path.isdir(output_directory):
-            raise FileNotFoundError(f"Directory {output_directory} does not exist")
-        for scope in SCOPE_ORDER:
-            opts = [opt for opt in options if opt.scope == scope]
-            class_name = scope.value
-            if self.scope_doc_options[scope].is_settable_option:
-                class_name += "s"
-            filename = "FDBException" if scope == Scope.ErrorPredicate else class_name
-            file_path = os.path.join(output_directory, filename + ".java")
-            with open(file_path, "w", newline="\n") as out_file:
+    def write_files(self, output_files: List[str], options: Sequence[Option]) -> None:
+        if len(output_files) == 0:
+            raise ValueError("No output files provided for Java binding generation")
+        output_directory = os.path.dirname(output_files[0])
+        for output_file in output_files:
+            # Brute force the way we find the file from the output file
+            for scope in SCOPE_ORDER:
+                opts = [opt for opt in options if opt.scope == scope]
+                class_name = scope.value
                 if self.scope_doc_options[scope].is_settable_option:
-                    if scope == Scope.ErrorPredicate:
-                        self._write_predicate_class(out_file, scope, opts)
+                    class_name += "s"
+                filename = (
+                    "FDBException" if scope == Scope.ErrorPredicate else class_name
+                )
+                file_path = os.path.join(output_directory, filename + ".java")
+                if file_path != output_file:
+                    continue
+                with open(file_path, "w", newline="\n") as out_file:
+                    if self.scope_doc_options[scope].is_settable_option:
+                        if scope == Scope.ErrorPredicate:
+                            self._write_predicate_class(out_file, scope, opts)
+                        else:
+                            self._write_options_class(out_file, scope, opts)
                     else:
-                        self._write_options_class(out_file, scope, opts)
-                else:
-                    self._write_enum_class(out_file, scope, opts)
+                        self._write_enum_class(out_file, scope, opts)
 
 
 class PythonWriter(BindingWriter):
@@ -591,9 +599,9 @@ class PythonWriter(BindingWriter):
 
     @staticmethod
     def _python_line(option: Option) -> str:
-        param_desc = "None" if option.param_desc is None else f"\"{option.param_desc}\""
+        param_desc = "None" if option.param_desc is None else f'"{option.param_desc}"'
         return (
-            f"    \"{option.name}\" : ({option.code}, \"{option.comment}\", "
+            f'    "{option.name}" : ({option.code}, "{option.comment}", '
             f"{PythonWriter.type_map[option.param_type]}, {param_desc}),"
         )
 
@@ -651,9 +659,9 @@ class RubyWriter(BindingWriter):
 
     @staticmethod
     def _ruby_line(option: Option) -> str:
-        param_desc = "nil" if option.param_desc is None else f"\"{option.param_desc}\""
+        param_desc = "nil" if option.param_desc is None else f'"{option.param_desc}"'
         return (
-            f"    \"{option.name.upper()}\" => [{option.code}, \"{option.comment}\", "
+            f'    "{option.name.upper()}" => [{option.code}, "{option.comment}", '
             f"{RubyWriter.type_map[option.param_type]}, {param_desc}],"
         )
 
